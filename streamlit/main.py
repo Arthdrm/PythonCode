@@ -4,6 +4,7 @@ Dicoding Collection company.
 Est. 2024
 '''
 
+
 import streamlit as st
 import pandas as pd
 import seaborn as sns
@@ -283,5 +284,5 @@ st.pyplot(fig)
 st.write("")
 st.write("")
 st.divider()
-st.caption("Copyright (c) Artha 2024")
+st.caption("Copyright (c) Dicoding x Artha 2024")
 
