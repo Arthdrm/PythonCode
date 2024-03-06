@@ -69,7 +69,7 @@ def create_rfm_df(df):
 
 
 # ============= Data Import =============
-all_df = pd.read_csv('all_df.csv')
+all_df = pd.read_csv('./all_df.csv')
 # Sorting rows based on order_date
 all_df.sort_values(by="order_date", inplace=True)
 # Reset index because it was imported from csv
