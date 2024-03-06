@@ -83,7 +83,7 @@ for col in datetime_columns:
 # ============= Section: Sidebar =============
 # Providing a date filter input (range).
 with st.sidebar:
-    st.image('logo_dicoding_collection.png')
+    st.image('streamlit/logo_dicoding_collection.png')
     min_date = all_df["order_date"].dt.date.min()
     max_date = all_df["order_date"].dt.date.max()
     start_date = min_date
