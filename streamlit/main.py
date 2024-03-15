@@ -101,8 +101,6 @@ with st.sidebar:
         st.error("You must pick both the start and the end date")
         st.stop() # Pausing the script's execution
 
-
-# ============= Section: Main page =============
 # Filter df to only include rows within the specified date range.
 main_df = all_df[(all_df['order_date'].dt.date >= start_date) & (all_df['order_date'].dt.date <= end_date)]
 # Creating derivatives df
