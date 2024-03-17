@@ -147,8 +147,8 @@ with st.sidebar:
         st.stop() # Pausing the script's execution
 
 daily_df = daily_df[(daily_df['dteday'].dt.date >= start_date) & (daily_df['dteday'].dt.date <= end_date)]
-season_df = create_season_df(daily_df)
-weather_df = create_weather_df(daily_df)
+season_daily_df = create_season_df(daily_df)
+weather_daily_df = create_weather_df(daily_df)
 holiday_df = create_holiday_df(daily_df)
 workingday_df = create_workingday_df(daily_df)
 corr_df = create_corr_df(daily_df)
@@ -221,14 +221,11 @@ st.write("")
 
 
 # ============= Dashboard: Jumlah Penyewaan Pada Setiap Musim/Cuaca =============
-st.subheader("Jumlah Penyewaan Pada Setiap Musim/Cuaca")
 # Membuat barchart untuk memvisualisasi jumlah penyewaan pada setiap musim ataupun cuaca (Harian)
+st.subheader("Jumlah Penyewaan Pada Setiap Musim/Cuaca")
 colors_1 = ['#4FFB55', '#D3D3D3', '#D3D3D3', '#D3D3D3']
 colors_2 = ['#4FFB55', '#D3D3D3', '#D3D3D3']
-weather_daily_df = create_weather_df(daily_df)
-season_daily_df = create_season_df(daily_df)
 fig, axes = plt.subplots(figsize=(20,6), nrows=1, ncols=2)
-
 # First chart: season
 sns.barplot(
     x='season',
@@ -238,18 +235,16 @@ sns.barplot(
     palette=colors_1,
     ax=axes[0]
 )
-tallest_index = season_daily_df['cnt'].idxmax()
 tallest_value = season_daily_df['cnt'].max()
-axes[0].annotate(
-    text='{:,}'.format(tallest_value),
-    xy=(tallest_index, tallest_value),
-    xytext=(tallest_index - .2, tallest_value + 20000)
+axes[0].bar_label(
+    axes[0].containers[0],
+    labels=['{:,}'.format(tallest_value)],
+    label_type='edge'
 )
+axes[0].margins(y=0.1)
 axes[0].set_xlabel(None)
 axes[0].set_ylabel(None)
 axes[0].set_title("Musim")
-axes[0].set_ylim(top=max(season_daily_df['cnt']) * 1.1) # Menambah ruang kosong untuk anotasi
-
 # Second chart: weather
 sns.barplot(
     x='weathersit',
@@ -259,17 +254,133 @@ sns.barplot(
     palette=colors_2,
     ax=axes[1]
 )
-tallest_index = weather_daily_df['cnt'].idxmax()
 tallest_value = weather_daily_df['cnt'].max()
-axes[1].annotate(
-    text='{:,}'.format(tallest_value),
-    xy=(tallest_index, tallest_value),
-    xytext=(tallest_index - .15, tallest_value + 30000)
+axes[1].bar_label(
+    axes[1].containers[0],
+    labels=['{:,}'.format(tallest_value)],
+    label_type='edge'
+)
+axes[1].margins(y=0.1)
+axes[1].set_xlabel(None)
+axes[1].set_ylabel(None)
+axes[1].set_title("Cuaca")
+st.pyplot(fig)
+st.write("")
+# Membuat pie chart untuk memvisualisasi jumlah penyewaan pada setiap musim ataupun cuaca (harian)
+num_categories_1 = len(season_daily_df['cnt'])
+num_categories_2 = len(weather_daily_df['cnt'])
+explode_1 = [0] * num_categories_1
+explode_2 = [0] * num_categories_2
+if num_categories_1 > 1:
+   explode_1[0] = 0.2
+if num_categories_2 > 1:
+   explode_2[0] = 0.2
+fig, axes = plt.subplots(figsize=(20,6), nrows=1, ncols=2)
+# First chart: season
+axes[0].pie(
+    x=season_daily_df['cnt'],
+    labels=season_daily_df['season'],
+    colors=sns.color_palette("pastel"),
+    explode=explode_1,
+    autopct='%.2f%%'
+)
+axes[0].set_xlabel(None)
+axes[0].set_ylabel(None)
+axes[0].set_title("Musim")
+# Second chart: weather
+axes[1].pie(
+    x=weather_daily_df['cnt'],
+    labels=weather_daily_df['weathersit'],
+    colors=sns.color_palette("pastel"),
+    explode=explode_2,
+    autopct='%.2f%%'
 )
 axes[1].set_xlabel(None)
 axes[1].set_ylabel(None)
 axes[1].set_title("Cuaca")
-axes[1].set_ylim(top=max(weather_daily_df['cnt']) * 1.1)
 st.pyplot(fig)
 st.write("")
 st.write("")
+
+
+# ============= Dashboard: Jumlah Penyewaan Pada Setiap Hari Libur/Hari Kerja =============
+# Membuat barchart untuk memvisualisasi jumlah penyewaan pada setiap hari libur/kerja
+st.subheader("Jumlah Penyewaan Menurut Hari Libur/Hari Kerja")
+colors_1 = ['#4FFB55', '#D3D3D3']
+colors_2 = ['#4FFB55', '#D3D3D3']
+holiday_df = create_holiday_df(daily_df)
+workingday_df = create_workingday_df(daily_df)
+fig, axes = plt.subplots(figsize=(20,6), nrows=1, ncols=2)
+# First chart: holiday
+sns.barplot(
+    x='holiday',
+    y='cnt',
+    hue='holiday',
+    data=holiday_df,
+    palette=colors_1,
+    ax=axes[0]
+)
+tallest_value = holiday_df['cnt'].max()
+axes[0].bar_label(
+    axes[0].containers[0],
+    labels=['{:,}'.format(tallest_value)],
+    label_type='edge'
+)
+axes[0].margins(y=0.1)
+axes[0].set_xlabel(None)
+axes[0].set_ylabel(None)
+axes[0].set_title("Hari Libur")
+# Second chart: workingday
+sns.barplot(
+    x='workingday',
+    y='cnt',
+    hue='workingday',
+    data=workingday_df,
+    palette=colors_2,
+    ax=axes[1]
+)
+tallest_value = workingday_df['cnt'].max()
+axes[1].bar_label(
+    axes[1].containers[0],
+    labels=['{:,}'.format(tallest_value)],
+    label_type='edge'
+)
+axes[1].margins(y=0.1)
+axes[1].set_xlabel(None)
+axes[1].set_ylabel(None)
+axes[1].set_title("Hari Kerja")
+st.pyplot(fig)
+st.write("")
+# Membuat pie chart untuk memvisualisasi jumlah penyewaan pada setiap hari libur/hari kerja
+num_categories = len(holiday_df['cnt'])
+explode = [0] * num_categories
+if num_categories > 1:
+   explode[0] = 0.2
+fig, axes = plt.subplots(figsize=(20,6), nrows=1, ncols=2)
+# First chart: holiday
+axes[0].pie(
+    x=holiday_df['cnt'],
+    labels=holiday_df['holiday'],
+    colors=sns.color_palette("pastel"),
+    explode=explode,
+    autopct='%.2f%%'
+)
+axes[0].set_xlabel(None)
+axes[0].set_ylabel(None)
+axes[0].set_title("Hari Libur")
+# Second chart: workingday
+axes[1].pie(
+    x=workingday_df['cnt'],
+    labels=workingday_df['workingday'],
+    colors=sns.color_palette("pastel"),
+    explode=explode,
+    autopct='%.2f%%'
+)
+axes[1].set_xlabel(None)
+axes[1].set_ylabel(None)
+axes[1].set_title("Hari Kerja")
+st.pyplot(fig)
+st.write("")
+st.write("")
+st.divider()
+st.caption("Copyright (c) Dicoding x Artha 2024")
