@@ -128,7 +128,7 @@ hourly_df['workingday'] = hourly_df['workingday'].map(workingday_mapping)
 # ============= Section: Sidebar =============
 # Menyediakan sebuah filter rentang tanggal
 with st.sidebar:
-    st.image('logo_bikeshare.png')
+    st.image('bikesharing-dashboard/logo_bikeshare.png')
     min_date = daily_df["dteday"].dt.date.min()
     max_date = daily_df["dteday"].dt.date.max()
     start_date = min_date
