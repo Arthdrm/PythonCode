@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "81dc94793f0e99403a7e3708b86c354f1f4f78f0c7d97d3f38515c0631b8b0b5"
+            "sha256": "a73b956cfce4fee6c95962269ea0a2a6fc253d51a7456762c158e028e65472bb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1479,7 +1479,7 @@
                 "sha256:e65028133d15b64d2ed8f06dd9fbc268352478d4f9289e69c190ecd6818b6407",
                 "sha256:e8ac1ae3601bee6ca9f7cb4b5363bf1c0badb935ef243c4733ff9a393b1690c0"
             ],
-            "index": "pypi",
+            "markers": "sys_platform == 'win32' and platform_python_implementation != 'PyPy'",
             "version": "==306"
         },
         "pywinpty": {
@@ -1491,8 +1491,7 @@
                 "sha256:b96fb14698db1284db84ca38c79f15b4cfdc3172065b5137383910567591fa99",
                 "sha256:c34e32351a3313ddd0d7da23d27f835c860d32fe4ac814d372a3ea9594f41dde"
             ],
-            "index": "pypi",
-            "markers": "python_version >= '3.8'",
+            "markers": "os_name == 'nt'",
             "version": "==2.0.13"
         },
         "pyyaml": {
