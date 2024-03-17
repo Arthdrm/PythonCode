@@ -53,10 +53,9 @@ def create_corr_df(df):
 
 # ============= Data Import =============
 # Memuat data penyewaan harian
-dir_path = os.path.dirname(os.path.realpath(__file__))
-daily_df = pd.read_csv(dir_path + '/Bike-sharing-dataset/day.csv')
+daily_df = pd.read_csv('bikesharing-dashboard/Bike-sharing-dataset/day.csv')
 # Memuat data penyewaan perjam
-hourly_df = pd.read_csv(dir_path + '/Bike-sharing-dataset/hour.csv')
+hourly_df = pd.read_csv('bikesharing-dashboard/Bike-sharing-dataset/hour.csv')
 # Melakukan reset index karena data diimport dari file csv
 daily_df.reset_index(inplace=True)
 hourly_df.reset_index(inplace=True)
@@ -154,7 +153,7 @@ workingday_df = create_workingday_df(daily_df)
 corr_df = create_corr_df(daily_df)
 
 
-# ============= Dashboard: Daily Rent =============
+# ============= Dashboard: Penyewaan Harian =============
 st.subheader("Penyewaan Harian")
 col_1, col_2, col_3, col_4 = st.columns(4)
 with col_1:
@@ -188,7 +187,7 @@ st.write("")
 st.write("")
 
 
-# ============= Dashboard: Correlation Matrix =============
+# ============= Dashboard: Matriks Korelasi =============
 # Membuat heatmap untuk memvisualisasi korelasi antar variabel numerik pada dataset
 st.subheader("Korelasi Variabel Numerik")
 fig, ax = plt.subplots(figsize=(20, 10))
@@ -352,17 +351,21 @@ axes[1].set_title("Hari Kerja")
 st.pyplot(fig)
 st.write("")
 # Membuat pie chart untuk memvisualisasi jumlah penyewaan pada setiap hari libur/hari kerja
-num_categories = len(holiday_df['cnt'])
-explode = [0] * num_categories
-if num_categories > 1:
-   explode[0] = 0.2
+num_categories_1 = len(holiday_df['cnt'])
+num_categories_2 = len(workingday_df['cnt'])
+explode_1 = [0] * num_categories_1
+explode_2 = [0] * num_categories_2
+if num_categories_1 > 1:
+   explode_1[0] = 0.2
+if num_categories_2 > 1:
+   explode_2[0] = 0.2
 fig, axes = plt.subplots(figsize=(20,6), nrows=1, ncols=2)
 # First chart: holiday
 axes[0].pie(
     x=holiday_df['cnt'],
     labels=holiday_df['holiday'],
     colors=sns.color_palette("pastel"),
-    explode=explode,
+    explode=explode_1,
     autopct='%.2f%%'
 )
 axes[0].set_xlabel(None)
@@ -373,7 +376,7 @@ axes[1].pie(
     x=workingday_df['cnt'],
     labels=workingday_df['workingday'],
     colors=sns.color_palette("pastel"),
-    explode=explode,
+    explode=explode_2,
     autopct='%.2f%%'
 )
 axes[1].set_xlabel(None)
