@@ -54,9 +54,9 @@ def create_corr_df(df):
 
 # ============= Data Import =============
 # Memuat data penyewaan sepeda harian dari github
-daily_df = pd.read_csv("https://raw.githubusercontent.com/Arthdrm/PublicDatasets/main/Bike-sharing-dataset/day.csv")
+daily_df = pd.read_csv("Bike-sharing-dataset/day.csv")
 # Memuat data penyewaan sepeda perjam dari github
-hourly_df = pd.read_csv("https://raw.githubusercontent.com/Arthdrm/PublicDatasets/main/Bike-sharing-dataset/hour.csv")
+hourly_df = pd.read_csv("Bike-sharing-dataset/hour.csv")
 # Melakukan reset index karena data diimport dari file csv
 daily_df.reset_index(inplace=True)
 hourly_df.reset_index(inplace=True)
