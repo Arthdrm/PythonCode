@@ -4,7 +4,7 @@ bike-sharing dataset analysis.
 Est. 2024
 @arthad
 '''
-
+import os
 import streamlit as st
 import pandas as pd
 import seaborn as sns
@@ -52,10 +52,11 @@ def create_corr_df(df):
   return corr_df
 
 # ============= Data Import =============
-# Memuat data penyewaan sepeda harian dari github
-daily_df = pd.read_csv("./Bike-sharing-dataset/day.csv")
-# Memuat data penyewaan sepeda perjam dari github
-hourly_df = pd.read_csv("./Bike-sharing-dataset/hour.csv")
+# Memuat data penyewaan harian
+dir_path = os.path.dirname(os.path.realpath(__file__))
+daily_df = pd.read_csv(dir_path + '/Bike-sharing-dataset/day.csv')
+# Memuat data penyewaan perjam
+hourly_df = pd.read_csv(dir_path + '/Bike-sharing-dataset/hour.csv')
 # Melakukan reset index karena data diimport dari file csv
 daily_df.reset_index(inplace=True)
 hourly_df.reset_index(inplace=True)
