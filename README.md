@@ -1,2 +1,2 @@
-# PythonCode
-Collections of python code
+# Python Code
+Collections of python code 🐍
