@@ -1,2 +1,2 @@
 # Python Code
-Collections of python code 🐍
+A collection of Python projects 🐍
