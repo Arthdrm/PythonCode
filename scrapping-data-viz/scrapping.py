@@ -4,6 +4,7 @@ import sys
 # No need to include sadness (as it's already collected)
 search_queries = {
     "generic": "prabowo",
+    "test"
     "anger": "(prabowo OR gibran OR wowo) (paok OR babi OR biadab OR benci OR sialan OR tai OR geram OR dengki OR tolol OR bajingan)",
     "sadness": "(prabowo OR gibran OR wowo) (sedih OR duka OR pilu OR susah OR muram OR derita OR tangis OR nangis OR murung OR luka OR tragis OR menyedihkan OR merana)",
     "suprise": "(prabowo OR gibran OR wowo) (kagum OR tercengang OR kejut OR tertegun OR kagum OR melongo OR terpukau)",
@@ -19,6 +20,10 @@ date_range = {
     "february":["01-02-2024", "29-02-2024"],
     "march":["01-03-2024", "17-03-2024"]
 }
+
+# date_range = {
+#     "november":["28-11-2023", "29-11-2023"]
+# }
 
 # Constructing the run command from terminal arguments
 token = sys.argv[1]
@@ -52,5 +57,3 @@ for date in date_range.values():
     print("====== Result: {} =====\n".format(result_list[-2]))   
 
 # temp_command_1 = 'npx tweet-harvest@latest -t 5aa215dfb6a1756ff296181ddac3f2bc3939c839 -s bakso -l 30 --tab LATEST'.split()
-# temp_command_2 = 'np tweet-harvest@latest -t 5aa215dfb6a1756ff296181ddac3f2bc3939c839 -s cilok -l 30 --tab LATEST'.split()
-# temp_commands = [temp_command_1, temp_command_2]
