@@ -4,7 +4,6 @@ import sys
 # No need to include sadness (as it's already collected)
 search_queries = {
     "generic": "prabowo",
-    "test"
     "anger": "(prabowo OR gibran OR wowo) (paok OR babi OR biadab OR benci OR sialan OR tai OR geram OR dengki OR tolol OR bajingan)",
     "sadness": "(prabowo OR gibran OR wowo) (sedih OR duka OR pilu OR susah OR muram OR derita OR tangis OR nangis OR murung OR luka OR tragis OR menyedihkan OR merana)",
     "suprise": "(prabowo OR gibran OR wowo) (kagum OR tercengang OR kejut OR tertegun OR kagum OR melongo OR terpukau)",
