@@ -8,6 +8,7 @@ playwright = "*"
 pytest = "*"
 pandas = "*"
 requests = "*"
+trafilatura = "*"
 
 [dev-packages]
 

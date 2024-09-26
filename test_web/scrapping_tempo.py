@@ -5,7 +5,6 @@ Author: Kadek Artha Darma Pradnyana
 Date: 22 September 2024
 """
 
-import csv
 import pandas as pd
 import time
 from playwright.sync_api import sync_playwright, TimeoutError
@@ -30,7 +29,8 @@ def main():
             print("Amount of articles scrapped: {}".format(len(scrapping_result[0])))
             print("Scrapping complete =====")
             is_failed = False
-        except TimeoutError:
+        except TimeoutError as e:
+            print(e)
             print("Time out error occured. Waiting for 2 seconds")
             time.sleep(2)
     print("Script finished.\n")
@@ -47,7 +47,7 @@ def scrape_article_links(url):
         summaries_list = []
 
         # Collect all article links on the current page
-        links = page.locator('article.text-card h2.title a')  # Updated selector for article links
+        links = page.locator('article.text-card h2.title a')  
         summaries = page.locator('article.text-card p:not([class])')
         article_links.extend([link.get_attribute('href') for link in links.element_handles()])
         summaries_list.extend([summary.text_content() for summary in summaries.element_handles()])
