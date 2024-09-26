@@ -48,7 +48,7 @@ def run(playwright: Playwright) -> None:
     context.close()
     browser.close()
  
-
-# Run the playwright scenario (with synchronous API)
-with sync_playwright() as playwright:
-    run(playwright)
+if __name__ == "__main__":
+    # Run the playwright scenario (with synchronous API)
+    with sync_playwright() as playwright:
+        run(playwright)

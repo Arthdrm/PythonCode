@@ -65,5 +65,8 @@ table_data = fetch_table(url_api_semua)
 random_nim = fetch_random(url_api_individu)
 
 
-with sync_playwright() as playwright:
-    run(playwright, url_front_end, table_data, random_nim)
+if __name__ == "__main__":
+    with sync_playwright() as playwright:
+        run(playwright, url_front_end, table_data, random_nim)
+
+

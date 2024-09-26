@@ -3,5 +3,7 @@
         "test_web"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    // Setting to enable type hinting in python
+    // "python.analysis.typeCheckingMode": "strict" 
 }

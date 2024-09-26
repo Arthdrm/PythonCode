@@ -9,6 +9,7 @@ pytest = "*"
 pandas = "*"
 requests = "*"
 trafilatura = "*"
+asyncio = "*"
 
 [dev-packages]
 
