@@ -21,7 +21,7 @@ RESULT_DIR = f"{SCRIPT_DIR}/scrapping_result/"
 BASE_URL = "https://www.tempo.co/indeks/"
 
 # Create a semaphore to limit concurrent tasks
-sem = asyncio.Semaphore(15)
+sem = asyncio.Semaphore(10)
 
 # Asynchronous function to scrape articles for a particular month
 async def scrape_article_monthly(url):
@@ -54,8 +54,8 @@ async def scrape_article_monthly(url):
                 links = page.locator('article.text-card h2.title a')
                 summaries = page.locator('article.text-card p:not([class])')
                 
-                article_links.extend([await link.get_attribute('href') for link in await links.element_handles()])
-                summaries_list.extend([await summary.text_content() for summary in await summaries.element_handles()])
+                article_links.extend([await link.get_attribute('href') for link in links.all()])
+                summaries_list.extend([await summary.text_content() for summary in summaries.all()])
                 
                 current_date += timedelta(days=1)  # Move to the next day
             except Exception as e:
