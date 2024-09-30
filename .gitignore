@@ -1,4 +1,4 @@
 # Ignore dataset directories
 /dataset
 /tweets-data
-/test_web/scrapping_result
+/test_web/scrapping_result/
