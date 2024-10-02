@@ -14,6 +14,7 @@ from tqdm.asyncio import tqdm
 import time
 import sys
 from collections import defaultdict
+from playwright_stealth import stealth_async
 
 # Global Constants
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -21,15 +22,17 @@ RESULT_DIR = f"{SCRIPT_DIR}/scrapping_result/"
 BASE_URL = "https://www.tempo.co/indeks/"
 
 # Create a semaphore to limit concurrent tasks
-sem = asyncio.Semaphore(15)
+sem = asyncio.Semaphore(2)
 
-async def scrape_article_content(browser, url):
+async def scrape_article_content(url):
     async with sem:
-        page = await browser.new_page()
-        try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch()
+            page = await browser.new_page()
+            await stealth_async(page)
             while True:
                 try:
-                    await page.goto(url, timeout=60000, wait_until="load")
+                    await page.goto(url, timeout=60000)
                     # Getting the script & genre tags
                     script_tags = page.locator('head script[type="application/ld+json"] + script[type="application/ld+json"]').nth(0)                
                     article_genre_tags = page.locator('ul.sitemap li:nth-child(2) span[itemprop="name"]')
@@ -60,27 +63,25 @@ async def scrape_article_content(browser, url):
                 except Exception as e:
                     tqdm.write(f"{e} occurred. Retrying after 2 seconds...")
                     await asyncio.sleep(2)
-        finally:
-            await page.close()
-
+            await browser.close()
         return article_content
+
 
 async def main():
     df = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\test_scrap.csv')
 
     # Extract the desired column as a list
     column_name = 'Link'  # Replace with your actual column name
-    all_links = df[column_name].tolist()[:50] # Extracting 50 links
+    all_links = df[column_name].tolist()[:30] # Extracting 50 links
 
     # Create multiple tasks for extracting individual news content
     start_time_individual = time.perf_counter()
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        tasks_individual = [scrape_article_content(browser, url) for url in all_links] 
-        results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(all_links)) 
-        await browser.close()    
+    tasks_individual = [scrape_article_content(url) for url in all_links] 
+    results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(all_links)) 
     elapsed_time_individual = time.perf_counter() - start_time_individual
-
+    print("")
+    print("\n")
+    print(f"Time taken for scraping individual news page: {elapsed_time_individual:.2f}s")          
     with open('data.json', 'w') as f:
         json.dump(results_individual_list, f)
 

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "df12bb6f9d9a9d353d60a3956c714bd10ae825216128cec920eef6be554520aa"
+            "sha256": "8567cf733e96a648b55f7223e5c70812c419a15979b2fe361faac3313b9e61b2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -540,6 +540,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==1.47.0"
+        },
+        "playwright-stealth": {
+            "hashes": [
+                "sha256:b1b2bcf58eb6859aa53d42c49b91c4e27b74a6d13fc3d0c85eea513dd55efda3",
+                "sha256:b504d951d00fac755c7d13665a29611d415180510bd7d23f14ebc89439ba2043"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+            "version": "==1.0.6"
         },
         "pluggy": {
             "hashes": [
