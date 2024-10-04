@@ -18,10 +18,9 @@ from collections import defaultdict
 # Global Constants
 SCRIPT_DIR = os.path.dirname(__file__)
 RESULT_DIR = f"{SCRIPT_DIR}/scrapping_result/"
-BASE_URL = "https://www.tempo.co/indeks/"
 
 # Create a semaphore to limit concurrent tasks
-sem = asyncio.Semaphore(2)
+sem = asyncio.Semaphore(7)
 
 async def scrape_article_content(url):
     async with sem:
@@ -43,6 +42,8 @@ async def scrape_article_content(url):
                     keyphrases_tags = page.locator('div.tags > a:not(.text-tags)')
                     # Get the summary (description) tag
                     summary_tag = page.locator('div.text-center.relative > :first-child').first
+                    # Extract the date
+                    date_tag = page.locator('.date-publish')
 
                     # Extrating the text of these tags
                     article_body = await article_body_tags.all_inner_texts()
@@ -50,6 +51,28 @@ async def scrape_article_content(url):
                     genre = await genre_tag.inner_text()
                     keyphrases= await keyphrases_tags.all_inner_texts()
                     summary = await summary_tag.inner_text()
+                    date_str = await date_tag.inner_text()
+
+                    # Processing date data
+                    date_str = date_str.replace("\u2013", "-")
+                    date_part = date_str.split("-")[0]
+                    date = date_part.split(',')[1].strip() # Ex: 01 Januari 2009
+                    id_eng_months = {
+                        "Januari": "January",
+                        "Februari": "February",
+                        "Maret": "March",
+                        "April": "April",
+                        "Mei": "May",
+                        "Juni": "June",
+                        "Juli": "July",
+                        "Agustus": "August",
+                        "September": "September",
+                        "Oktober": "October",
+                        "November": "November",
+                        "Desember": "December"
+                    }   
+                    for id_month, eng_month in id_eng_months.items():
+                        date = date.replace(id_month, eng_month)                 
 
                     # Adding article body
                     complete_article_body.extend(article_body)
@@ -73,8 +96,9 @@ async def scrape_article_content(url):
                         "title": title,
                         "body": " ".join(complete_article_body),
                         "genre": genre,
+                        "date": date,                        
                         "keyphrases": keyphrases,
-                        "summary": summary
+                        "summary": summary,
                     }                    
 
                     break
@@ -85,54 +109,30 @@ async def scrape_article_content(url):
         return article_content
 
 async def main():
-    all_links = [
-        "https://www.jpnn.com/news/sule-ungkap-alasan-turun-tangan-membela-mahalini",
-        "https://www.jpnn.com/news/komdis-pssi-beri-hukuman-tambahan-kepada-marc-klok-persib-harus-bersabar",
-        "https://www.jpnn.com/news/prudential-indonesia-dorong-program-pengembangan-anak-di-rote-ndao-ntt",
-        "https://jogja.jpnn.com/jogja-terkini/9706/indikasi-suap-mencuat-dalam-upaya-pembangunan-liquid-di-sleman",
-        "https://jabar.jpnn.com/jabar-terkini/20357/pemkot-bandung-segera-buka-akses-sementara-exit-tol-149",
-        "https://jateng.jpnn.com/kriminal/13692/polda-jateng-periksa-47-saksisoal-kasus-kematian-dr-aulia-risma-ppds-undip",
-        "https://jabar.jpnn.com/jabar-terkini/20355/pemkab-karawang-siagakan-ratusan-faskes-demi-layani-penderita-tbc",
-        "https://jabar.jpnn.com/olahraga/20356/rezaldi-hehanusa-perpanjang-kontrak-bersama-persib-bandung",
-        "https://www.jpnn.com/news/mahasiswa-papua-ajak-calon-kepala-daerah-kampanyekan-pilkada-damai",
-        "https://www.jpnn.com/news/rekaman-cctv-pembubaran-diskusi-fta-di-kemang-disita-polisi-begini-aksi-si-rambut-kuncir"
-    ]
+    # Load the index df
+    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_2023.csv')
+    all_links = df_index['url'].tolist()
 
     # Create multiple tasks for extracting individual news content
     start_time_individual = time.perf_counter()
     tasks_individual = [scrape_article_content(url) for url in all_links] 
-    results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(all_links)) 
+    results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(all_links))  # Return a list of dictionary
     elapsed_time_individual = time.perf_counter() - start_time_individual
 
-    with open('data_jppn.json', 'w') as f:
-        json.dump(results_individual_list, f)
+    # with open('data_jppn.json', 'w') as f:
+    #     json.dump(results_individual_list, f)
 
-    # # Combining list of dictionaries into a single dictionary
-    # results_individual = defaultdict(list)
-    # for d in results_individual_list:
-    #     for key, value in d.items():
-    #         results_individual[key].extend(value)  # Combine the list values
-    # results_individual = dict(results_individual)
+    # Saving to dataframe
+    df_final = pd.DataFrame(results_individual_list)
+    file_name = f"{RESULT_DIR}jppn_complete_2023.csv"  
+    df_final.to_csv(file_name, index=False)
 
-    # # Saving to dataframe
-    # file_name = f"{RESULT_DIR}scraped_articles_merged_2023.csv"
-    # df = pd.DataFrame({
-    #     "url": all_links,
-    #     "title": results_individual["title"],
-    #     "body": results_individual["body"],
-    #     "date": results_individual["date"],
-    #     "genre": results_individual["genre"],
-    #     "keyphrases": results_individual["keyphrases"],        
-    # })    
-    # df.to_csv(file_name, index=False)
-
-    # # Final Reporting
-    # sys.stdout.flush()    
-    # print("")
-    # print("\n")    
-    # print(f"Scraping complete. Total articles scraped: {len(all_links)}")
+    # Final Reporting
+    sys.stdout.flush()    
+    print("")
+    print("\n")    
     print(f"Time taken for scraping individual news page: {elapsed_time_individual:.2f}s")          
-    # print(f"Results saved to {file_name}")
+    print(f"Results saved to {file_name}")
 
 # Run the asyncio event loop
 if __name__ == "__main__":
