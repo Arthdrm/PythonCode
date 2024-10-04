@@ -22,6 +22,9 @@ RESULT_DIR = f"{SCRIPT_DIR}/scrapping_result/"
 # Create a semaphore to limit concurrent tasks
 sem = asyncio.Semaphore(7)
 
+async def handler(locator):
+    await locator.click()
+
 async def scrape_article_content(url):
     async with sem:
         async with async_playwright() as p: 
@@ -31,6 +34,7 @@ async def scrape_article_content(url):
 
             while True:
                 try:
+                    await page.add_locator_handler(page.locator('div#dismiss-button'), handler)
                     await page.goto(url, timeout=60000, wait_until="domcontentloaded")
                     # Getting the article body element (<p> elements)
                     article_body_tags = page.locator('div[itemprop="articleBody"] p')        
@@ -82,6 +86,7 @@ async def scrape_article_content(url):
                         # Checking the next button
                         next_button = page.locator('.pagination a', has_text='Next').first
                         if await next_button.count() > 0:
+                            # Handling overlay ads                            
                             await next_button.click()                        
                             await page.wait_for_load_state('domcontentloaded')
                             article_body_tags_next = page.locator('div[itemprop="articleBody"] p')
@@ -118,9 +123,6 @@ async def main():
     tasks_individual = [scrape_article_content(url) for url in all_links] 
     results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(all_links))  # Return a list of dictionary
     elapsed_time_individual = time.perf_counter() - start_time_individual
-
-    # with open('data_jppn.json', 'w') as f:
-    #     json.dump(results_individual_list, f)
 
     # Saving to dataframe
     df_final = pd.DataFrame(results_individual_list)
