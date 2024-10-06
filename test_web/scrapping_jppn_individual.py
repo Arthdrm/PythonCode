@@ -22,19 +22,17 @@ RESULT_DIR = f"{SCRIPT_DIR}/scrapping_result/"
 # Create a semaphore to limit concurrent tasks
 sem = asyncio.Semaphore(7)
 
-async def handler(locator):
-    await locator.click()
-
+# This function is only scraping 1 article at a time (but this function can be run concurrently)
 async def scrape_article_content(url):
     async with sem:
         async with async_playwright() as p: 
             browser = await p.chromium.launch()
             page = await browser.new_page()
             complete_article_body = []
-
+            overlay = False
             while True:
                 try:
-                    await page.add_locator_handler(page.locator('div#dismiss-button'), handler)
+                    # Going to the url
                     await page.goto(url, timeout=60000, wait_until="domcontentloaded")
                     # Getting the article body element (<p> elements)
                     article_body_tags = page.locator('div[itemprop="articleBody"] p')        
@@ -86,7 +84,7 @@ async def scrape_article_content(url):
                         # Checking the next button
                         next_button = page.locator('.pagination a', has_text='Next').first
                         if await next_button.count() > 0:
-                            # Handling overlay ads                            
+                            # Going to the next page                    
                             await next_button.click()                        
                             await page.wait_for_load_state('domcontentloaded')
                             article_body_tags_next = page.locator('div[itemprop="articleBody"] p')
@@ -104,19 +102,23 @@ async def scrape_article_content(url):
                         "date": date,                        
                         "keyphrases": keyphrases,
                         "summary": summary,
+                        "overlay": overlay
                     }                    
 
                     break
                 except Exception as e:
-                    tqdm.write(f"{e} occurred. Retrying after 2 seconds...")
-                    await asyncio.sleep(2)
+                    tqdm.write("An error occured, retrying after 3 seconds...")
+                    overlay = True
+                    complete_article_body.clear()
+                    await asyncio.sleep(3)
+            await browser.close()
 
         return article_content
 
 async def main():
     # Load the index df
     df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_2023.csv')
-    all_links = df_index['url'].tolist()
+    all_links = df_index['url'].tolist()[:850]
 
     # Create multiple tasks for extracting individual news content
     start_time_individual = time.perf_counter()

@@ -89,39 +89,38 @@ async def scrape_article_monthly(url):
     return article_links
 
 async def main():
-    # https://www.jpnn.com/indeks?id=&d=02&m=10&y=2024&tab=all
+    # URL format: https://www.jpnn.com/indeks?id=&d=02&m=10&y=2024&tab=all
+    for year in range(2010, 2023):
+        # Base monthly URLs starting with the first date in each month
+        months = [f"{BASE_URL}?id=&d=01&m={month:02d}&y={year}&tab=all" for month in range(1, 12)]  
+        
+        # Create task for each month
+        tasks_index = [scrape_article_monthly(url) for url in months] 
+        
+        # Create multiple tasks at once and wait for all of them to complete
+        start_time_index = time.perf_counter()
+        results_index = await asyncio.gather(*tasks_index) 
+        elapsed_time_index = time.perf_counter() - start_time_index
 
-    # Base monthly URLs starting with the first date in each month
-    months = [f"{BASE_URL}?id=&d=01&m={month:02d}&y=2023&tab=all" for month in range(1, 12)]  
-    
-    # Create task for each month
-    tasks_index = [scrape_article_monthly(url) for url in months] 
-    
-    # Create multiple tasks at once and wait for all of them to complete
-    start_time_index = time.perf_counter()
-    results_index = await asyncio.gather(*tasks_index) 
-    elapsed_time_index = time.perf_counter() - start_time_index
-    sys.stdout.flush()    
-    print("")
-    print("\n")   
+        # Flatten list
+        all_links = list(chain.from_iterable(results_index))
+        
+        # Saving to dataframe
+        file_name = f"{RESULT_DIR}jppn_index_{year}.csv"
+        df = pd.DataFrame({
+            "url": all_links     
+        })    
+        df.to_csv(file_name, index=False)
 
-    # Flatten list
-    all_links = list(chain.from_iterable(results_index))
-      
-    # Saving to dataframe
-    file_name = f"{RESULT_DIR}jppn_index_2023.csv"
-    df = pd.DataFrame({
-        "url": all_links     
-    })    
-    df.to_csv(file_name, index=False)
+        # Final Reporting
+        sys.stdout.flush()    
+        print("")  
+        print(f"Scraping complete. Total articles scraped: {len(all_links)}")
+        print(f"Time taken for scraping the index page: {elapsed_time_index:.2f}s")      
+        print(f"Results saved to {file_name}")
 
-    # Final Reporting
-    sys.stdout.flush()    
-    tqdm.write("")
-    tqdm.write("\n")    
-    tqdm.write(f"Scraping complete. Total articles scraped: {len(all_links)}")
-    tqdm.write(f"Time taken for scraping the index page: {elapsed_time_index:.2f}s")      
-    tqdm.write(f"Results saved to {file_name}")
+        # Small break
+        time.sleep(10)
 
 # Run the asyncio event loop
 if __name__ == "__main__":
