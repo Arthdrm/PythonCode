@@ -113,12 +113,12 @@ async def scrape_article_content(url):
 
 async def main():
     # Load the index df
-    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_2023.csv')
+    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\december_jppn_index_2023.csv')
     all_links = df_index['url'].tolist()
 
     batch_size = 5000 
-    batch_num = 2 # batch num should be 1 not 2. This is a temporary fix.
-    for i in range(10000, len(all_links), batch_size): # The starting range should be 0 not 10k, this is a  temporary fix.
+    batch_num = 19  
+    for i in range(0, len(all_links), batch_size): 
         batch = all_links[i:i + batch_size]
 
         # Create multiple tasks for extracting individual news content

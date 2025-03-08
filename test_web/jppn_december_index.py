@@ -90,9 +90,9 @@ async def scrape_article_monthly(url):
 
 async def main():
     # URL format: https://www.jpnn.com/indeks?id=&d=02&m=10&y=2024&tab=all
-    for year in range(2010, 2023):
+    for year in range(2023, 2024):
         # Base monthly URLs starting with the first date in each month
-        months = [f"{BASE_URL}?id=&d=01&m={month:02d}&y={year}&tab=all" for month in range(1, 13)]  
+        months = [f"{BASE_URL}?id=&d=01&m={month:02d}&y={year}&tab=all" for month in range(12, 13)]  
         
         # Create task for each month
         tasks_index = [scrape_article_monthly(url) for url in months] 
@@ -106,7 +106,7 @@ async def main():
         all_links = list(chain.from_iterable(results_index))
         
         # Saving to dataframe
-        file_name = f"{RESULT_DIR}jppn_index_{year}.csv"
+        file_name = f"{RESULT_DIR}december_jppn_index_{year}.csv"
         df = pd.DataFrame({
             "url": all_links     
         })    
