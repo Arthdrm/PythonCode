@@ -113,11 +113,11 @@ async def scrape_article_content(url):
 
 async def main():
     # Load the index df
-    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\december_jppn_index_2023.csv')
+    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\december_jppn_index_2022.csv')
     all_links = df_index['url'].tolist()
 
     batch_size = 5000 
-    batch_num = 19  
+    batch_num = 29  
     for i in range(0, len(all_links), batch_size): 
         batch = all_links[i:i + batch_size]
 
