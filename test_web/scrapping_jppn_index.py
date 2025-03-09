@@ -90,7 +90,7 @@ async def scrape_article_monthly(url):
 
 async def main():
     # URL format: https://www.jpnn.com/indeks?id=&d=02&m=10&y=2024&tab=all
-    for year in range(2010, 2023):
+    for year in range(2010, 2022):
         # Base monthly URLs starting with the first date in each month
         months = [f"{BASE_URL}?id=&d=01&m={month:02d}&y={year}&tab=all" for month in range(1, 13)]  
         
