@@ -1,6 +1,6 @@
 """
-A Python script for performing news scrapping (async version).
-
+A Python script for performing news scrapping (async version) 
+[CAUTION: The index path is hardcoded in this script]
 Author: Kadek Artha Darma Pradnyana
 Date: 22 September 2024
 """
@@ -113,12 +113,12 @@ async def scrape_article_content(url):
 
 async def main():
     # Load the index df
-    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_2023.csv')
+    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_2021.csv')
     all_links = df_index['url'].tolist()
 
     batch_size = 5000 
-    batch_num = 2 # batch num should be 1 not 2. This is a temporary fix.
-    for i in range(10000, len(all_links), batch_size): # The starting range should be 0 not 10k, this is a  temporary fix.
+    batch_num = 1 # [DEBUG] batch num should be 1 not 2. This is a temporary fix.
+    for i in range(0, len(all_links), batch_size): # [DEBUG] The starting range should be 0 not 10k, this is a  temporary fix.
         batch = all_links[i:i + batch_size]
 
         # Create multiple tasks for extracting individual news content
@@ -129,7 +129,7 @@ async def main():
 
         # Saving to dataframe
         df_final = pd.DataFrame(results_individual_list)
-        file_name = f"{RESULT_DIR}jppn_2023_batch_{batch_num}.csv"  
+        file_name = f"{RESULT_DIR}jppn_2021_batch_{batch_num}.csv"  
         df_final.to_csv(file_name, index=False)
 
         # Final Reporting
