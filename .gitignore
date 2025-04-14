@@ -2,3 +2,4 @@
 /dataset
 /scrapping-data-viz/tweets-data/
 /test_web/scrapping_result/
+/seq2seq_streamlit/model_and_tokenizer
