@@ -1,5 +1,5 @@
 # Ignore dataset directories
 /dataset
 /scrapping-data-viz/tweets-data/
-/test_web_and_scraping/scrapping_result/
 /seq2seq_streamlit/model_and_tokenizer
+/test_web_and_scraping/scrapping_result
