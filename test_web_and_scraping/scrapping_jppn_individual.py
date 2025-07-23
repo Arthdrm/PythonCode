@@ -112,37 +112,39 @@ async def scrape_article_content(url):
         return article_content
 
 async def main():
-    # Load the index df
-    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_2021.csv')
-    all_links = df_index['url'].tolist()
+    # Load the index df (CSV file) containing the URLs to scrape (Index from 2021 to 2023)
+    index_paths = [rf"C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\jppn_index_{year}.csv" for year in range(2021, 2024)]
+    for index_path in index_paths:
+        df_index = pd.read_csv(index_path)
+        all_links = df_index['url'].tolist()
 
-    batch_size = 5000 
-    batch_num = 1 # [DEBUG] batch num should be 1 not 2. This is a temporary fix.
-    for i in range(0, len(all_links), batch_size): # [DEBUG] The starting range should be 0 not 10k, this is a  temporary fix.
-        batch = all_links[i:i + batch_size]
+        batch_size = 5000 
+        batch_num = 1 # [DEBUG] batch num should be 1 not 2. This is a temporary fix.
+        for i in range(0, len(all_links), batch_size): # [DEBUG] The starting range should be 0 not 10k, this is a  temporary fix.
+            batch = all_links[i:i + batch_size]
 
-        # Create multiple tasks for extracting individual news content
-        start_time_individual = time.perf_counter()
-        tasks_individual = [scrape_article_content(url) for url in batch] 
-        results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(batch))  # Return a list of dictionary
-        elapsed_time_individual = time.perf_counter() - start_time_individual
+            # Create multiple tasks for extracting individual news content
+            start_time_individual = time.perf_counter()
+            tasks_individual = [scrape_article_content(url) for url in batch] 
+            results_individual_list = await tqdm.gather(*tasks_individual, desc="Scraping Individual Pages", total=len(batch))  # Return a list of dictionary
+            elapsed_time_individual = time.perf_counter() - start_time_individual
 
-        # Saving to dataframe
-        df_final = pd.DataFrame(results_individual_list)
-        file_name = f"{RESULT_DIR}jppn_2021_batch_{batch_num}.csv"  
-        df_final.to_csv(file_name, index=False)
+            # Saving to dataframe
+            df_final = pd.DataFrame(results_individual_list)
+            file_name = f"{RESULT_DIR}jppn_2021_batch_{batch_num}.csv"  
+            df_final.to_csv(file_name, index=False)
 
-        # Final Reporting
-        sys.stdout.flush()    
-        sys.stderr.flush()
-        print("-------")    
-        print(f"Finished batch: {batch_num}")
-        print(f"Time taken for scraping individual news page: {elapsed_time_individual:.2f}s")          
-        print(f"Results saved to {file_name}")
-        print("Break between batches for 20 seconds.............\n")
-        batch_num += 1
-        del results_individual_list, df_final, batch
-        time.sleep(20)
+            # Final Reporting
+            sys.stdout.flush()    
+            sys.stderr.flush()
+            print("-------")    
+            print(f"Finished batch: {batch_num}")
+            print(f"Time taken for scraping individual news page: {elapsed_time_individual:.2f}s")          
+            print(f"Results saved to {file_name}")
+            print("Break between batches for 20 seconds.............\n")
+            batch_num += 1
+            del results_individual_list, df_final, batch
+            time.sleep(20)
 
 
 # Run the asyncio event loop

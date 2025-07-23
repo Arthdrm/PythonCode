@@ -113,11 +113,11 @@ async def scrape_article_content(url):
 
 async def main():
     # Load the index df
-    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web\scrapping_result\december_jppn_index_2022.csv')
+    df_index = pd.read_csv(r'C:\Users\User\Documents\Python_Projects\test_web_and_scraping\scrapping_result\custom_jppn_index_2024.csv')
     all_links = df_index['url'].tolist()
 
     batch_size = 5000 
-    batch_num = 29  
+    batch_num = 0  
     for i in range(0, len(all_links), batch_size): 
         batch = all_links[i:i + batch_size]
 
@@ -129,7 +129,7 @@ async def main():
 
         # Saving to dataframe
         df_final = pd.DataFrame(results_individual_list)
-        file_name = f"{RESULT_DIR}jppn_2023_batch_{batch_num}.csv"  
+        file_name = f"{RESULT_DIR}jppn_2024_batch_{batch_num}.csv"  
         df_final.to_csv(file_name, index=False)
 
         # Final Reporting
