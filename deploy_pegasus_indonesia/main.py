@@ -8,6 +8,7 @@ import tensorflow as tf
 import pandas as pd
 import trafilatura
 import json
+import re
 
 from nltk.tokenize import sent_tokenize
 from transformers import TFPegasusForConditionalGeneration, PegasusTokenizerFast, PegasusConfig
@@ -15,12 +16,16 @@ from transformers import TFPegasusForConditionalGeneration, PegasusTokenizerFast
 
 # 2) Initial set-up & loading resources
 @st.cache_resource
-def load_model_and_tokenizer(model_name):
-    tokenizer = PegasusTokenizerFast.from_pretrained(original_model_name)
-    model = TFPegasusForConditionalGeneration.from_pretrained(original_model_name)
-    return model, tokenizer
+def load_model(model_name):
+    model = TFPegasusForConditionalGeneration.from_pretrained(model_name)
+    return model
 
-original_model_name = "thonyyy/pegasus_indonesian_base-finetune"
+@st.cache_resource
+def load_tokenizers(regular_tokenizer_name, informative_tokenizer_name):
+    regular_tokenizer = PegasusTokenizerFast.from_pretrained(regular_tokenizer_name)
+    informative_tokenizer = PegasusTokenizerFast.from_pretrained(informative_tokenizer_name)
+    return regular_tokenizer, informative_tokenizer
+
 my_model_names = {
     "Regular Canon": "arthd24/pegasus_regular_canon_tpuv4-16",
     "Regular Canon Tuned": "arthd24/pegasus_regular_canon_tuned_tpuv4-16",
@@ -31,9 +36,12 @@ my_model_names = {
     "Informative Xtreme": "arthd24/pegasus_informative_xtreme_tpuv4-16",
     "Informative Xtreme Tuned": "arthd24/pegasus_informative_xtreme_tuned_tpuv4-16"
 }
+regular_models = ["Regular Canon", "Regular Canon Tuned", "Regular Xtreme", "Regular Xtreme Tuned"]
+informative_models = ["Informative Canon", "Informative Canon Tuned", "Informative Xtreme", "Informative Xtreme Tuned"]
 max_input_len = 512
-model, tokenizer = load_model_and_tokenizer(original_model_name)
-xla_generate = tf.function(model.generate, jit_compile=True)
+models = [load_model(model) for model in my_model_names.values()] 
+regular_tokenizer, informative_tokenizer = load_tokenizers(my_model_names["Regular Canon"], my_model_names["Informative Canon"])
+# xla_generate = [tf.function(model.generate, jit_compile=True, reduce_retracing=True) for model in models]
 st.set_page_config(layout="wide")
 
 # 3) Preprocessing functions
@@ -77,14 +85,66 @@ def format_input(title, keyphrase, article):
     )
     return formatted_text
 
+# Post-process summary output function
+def post_process(summary):
+    summary = summary.strip()
+    summary = ' '.join(sentence.capitalize() for sentence in sent_tokenize(summary)) 
+    summary = re.sub(r"\.{2,}", ".", summary)
+    if not summary.endswith("."):
+        summary += "."
+    return summary
+
 # 4) Streamlit UI
 # === Sidebar Section ====
 with st.sidebar:
-    st.write("Sidebar")
-    st.text_input("Enter something")
+    st.write("Generation Kwargs")
+    preset_option = st.selectbox(
+        "Pilih tipe preset:",
+        ("Performance (Greedy)", "Quality (Beam Search)", "Creative (Random Sampling)", "Balanced (Beam & Random Sampling)")
+    )
+    if preset_option == "Performance (Greedy)":
+        default_no_repeat_ngram = 2
+        default_do_sample = 0
+        default_num_beam = 1
+        default_top_p = 1.0
+    elif preset_option == "Quality (Beam Search)":
+        default_no_repeat_ngram = 2
+        default_do_sample = 0
+        default_num_beam = 2
+        default_top_p = 1.0
+    elif preset_option == "Creative (Random Sampling)":
+        default_no_repeat_ngram = 0
+        default_do_sample = 1
+        default_num_beam = 1
+        default_top_p = 0.90  
+    else:
+        default_no_repeat_ngram = 2
+        default_do_sample = 1
+        default_num_beam = 2
+        default_top_p = 0.90               
+    min_len = st.slider("Min Length", 10, 30, 20)
+    max_len = st.slider("Max Length", 30, 70, 50)
+    no_repeat_ngram = st.slider("No Repeat Ngram", 0, 4, default_no_repeat_ngram)
+    num_beam = st.slider("Num Beams", 1, 4, default_num_beam)
+    top_p = st.slider("Top P", 0.0, 1.0,  default_top_p, 0.01)
+    do_sample = st.radio(
+        "Do Sample",
+        [False, True],
+        index=default_do_sample,
+        horizontal=True
+    )
+    generation_kwargs = {
+        "min_length": min_len,
+        "max_length": max_len,
+        "do_sample": do_sample,
+        "num_beams": num_beam,
+        "top_p": top_p,          
+        "no_repeat_ngram_size": no_repeat_ngram
+    }
 
 # ==== Main Section ======
 st.header('Demo Peringkas Teks', divider="rainbow")
+
 input_option = st.selectbox(
     "Pilih tipe input:",
     ("Konten artikel berita", "Link artikel berita")
@@ -116,35 +176,50 @@ else:
         st.write("**Kata kunci:**", keyphrases_text)
         st.write("**Badan artikel:**", body_text)        
     else:
-        st.warning("Tidak dapat mengekstrak artikel dari URL yang diberikan.")    
+        st.warning("Tidak dapat mengekstrak artikel dari URL yang diberikan/URL kosong.")    
 
 summary_text_list = []
 
 if st.button("Summarize"):
     if body_text.strip() != "" and title_text.strip() != "" and keyphrases_text.strip() != "":
-        cleaned_body = text_cleaning(body_text)
-        cleaned_keyphrase = text_cleaning(keyphrases_text)
         cleaned_title = text_cleaning(title_text)
-        inputs = tokenizer(cleaned_body, return_tensors="tf")
+        cleaned_body = text_cleaning(body_text)
+        cleaned_keyphrase = text_cleaning(keyphrases_text)        
+        informative_text = format_input(cleaned_title, cleaned_keyphrase, cleaned_body)
+        regular_inputs = regular_tokenizer(cleaned_body, return_tensors="tf", max_length=max_input_len, padding="max_length", truncation=True)
+        informative_inputs = informative_tokenizer(informative_text, return_tensors="tf", max_length=max_input_len, padding="max_length", truncation=True)
         progress_bar = st.progress(0, text="Membangkitkan ringkasan...")
-        start_time = time.perf_counter()      
+        start_time = time.perf_counter() 
         for i in range(8):
-            generated_tokens = xla_generate(
-                input_ids=inputs["input_ids"],
-                max_length=50,
-                min_length=20,
-                num_beams=1,
-                early_stopping=True
-            )
-            summary_text = tokenizer.decode(
-                generated_tokens[0],
-                skip_special_tokens=True,
-                clean_up_tokenization_spaces=True
-            )
-            summary_text_list.append(summary_text)
+            if i < 4:
+                # Regular Models
+                generated_tokens = models[i].generate(
+                    input_ids=regular_inputs["input_ids"],
+                    attention_mask=regular_inputs["attention_mask"],
+                    **generation_kwargs
+                )
+                summary_text = regular_tokenizer.decode(
+                    generated_tokens[0],
+                    skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True
+                )
+                summary_text_list.append(summary_text)                
+            else:
+                # Informative Models
+                generated_tokens = models[i].generate(
+                    input_ids=informative_inputs["input_ids"],
+                    attention_mask=informative_inputs["attention_mask"],
+                    **generation_kwargs
+                )                
+                summary_text = informative_tokenizer.decode(
+                    generated_tokens[0],
+                    skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True
+                )
+                summary_text_list.append(summary_text)
             progress_bar.progress(i * 0.125, text=f"Ringkasan dibangkitkan: ({i}/8)")
         progress_bar.empty()
-        summary_text_list = [' '.join(sentence.capitalize() for sentence in sent_tokenize(t)) for t in summary_text_list]
+        summary_text_list = [post_process(sum) for sum in summary_text_list]
         st.subheader("Hasil Ringkasan:")
         elapsed_time = time.perf_counter() - start_time
         st.write(f"**Time taken**: {elapsed_time:2f}s") 
