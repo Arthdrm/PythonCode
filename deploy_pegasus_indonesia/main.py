@@ -12,7 +12,7 @@ import re
 
 from nltk.tokenize import sent_tokenize
 from transformers import TFPegasusForConditionalGeneration, PegasusTokenizerFast, PegasusConfig
-
+from newsplease import NewsPlease
 
 # 2) Initial set-up & loading resources
 @st.cache_resource
@@ -156,27 +156,28 @@ if input_option == "Konten artikel berita":
     body_text = st.text_area("Masukan badan artikel:", height="content", placeholder="Contoh: jpnn.com, SUMEDANG - Pasien RSUD Kabupaten Sumedang dievakuasi keluar rumah sakit pasca-gempa bumi. Mereka ditempatkan dia tenda darurat milik BPBD Kabupaten Garut. Kepala Pelaksana BPBD Kabupaten Garut Aah Anwar Saefuloh mengatakan sejumlah personel BPBD Garut diturunkan untuk memasang tenda darurat berikut lampu penerangan yang disiapkan bagi pasien RSUD Sumedang.")
 else:
     article_link = st.text_input("Masukan URL artikel:", placeholder="Contoh: https://www.jpnn.com/news/didimax-dukung-investasi-aman-lewat-edukasi-trading-forex")
-    downloaded_content = trafilatura.fetch_url(article_link)
+    if article_link:
+        downloaded_content = trafilatura.fetch_url(article_link)
+        body_text = NewsPlease.from_url(article_link).maintext
 
-    # Extract the data as a JSON string
-    json_output = trafilatura.extract(
-        downloaded_content,
-        output_format='json',
-        with_metadata=True
-    )
+        # Extract the data as a JSON string
+        json_output = trafilatura.extract(
+            downloaded_content,
+            output_format='json',
+            with_metadata=True
+        )
 
-    if json_output:
-        # Parse the JSON string into a Python dictionary
-        article_data = json.loads(json_output)
-        keyphrases_text = article_data.get('tags')
-        body_text = article_data.get('text')
-        title_text = article_data.get('title')
-        st.subheader("Konten Berita:")
-        st.write("**Judul:**", title_text)
-        st.write("**Kata kunci:**", keyphrases_text)
-        st.write("**Badan artikel:**", body_text)        
-    else:
-        st.warning("Tidak dapat mengekstrak artikel dari URL yang diberikan/URL kosong.")    
+        if json_output:
+            # Parse the JSON string into a Python dictionary
+            article_data = json.loads(json_output)
+            keyphrases_text = article_data.get('tags')
+            title_text = article_data.get('title')
+            st.subheader("Konten Berita:")
+            st.write("**Judul:**", title_text)
+            st.write("**Kata kunci:**", keyphrases_text)
+            st.write("**Badan artikel:**", body_text)        
+        else:
+            st.warning("Tidak dapat mengekstrak artikel dari URL yang diberikan/URL kosong.")    
 
 summary_text_list = []
 
